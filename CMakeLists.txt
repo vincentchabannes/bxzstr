@@ -1,8 +1,21 @@
 cmake_minimum_required(VERSION 3.13)
 project(bxzstr)
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+set( BXZSTR_TARGET_NAME ${PROJECT_NAME})
+set( BXZSTR_INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
+set( BXZSTR_INCLUDE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/ )
+if(NOT DEFINED NAPP_CONFIG_INSTALL_DIR )
+  set(BXZSTR_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" CACHE INTERNAL "")
+endif()
+set(BXZSTR_TARGETS_EXPORT_NAME "${PROJECT_NAME}Targets")
+set(BXZSTR_CMAKE_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(BXZSTR_CMAKE_PROJECT_TARGETS_FILE "${BXZSTR_CMAKE_CONFIG_DIR}/${PROJECT_NAME}Targets.cmake")
+
 ## For FindZstd
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+#set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(DEFINED ZLIB_FOUND)
   if(ZLIB_FOUND)
@@ -92,9 +105,37 @@ add_library(bxzstr::bxzstr ALIAS bxzstr)
 
 # -- set target properties
 
-target_include_directories(bxzstr INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+#target_include_directories(bxzstr INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(
+  bxzstr
+  INTERFACE
+  $<BUILD_INTERFACE:${BXZSTR_INCLUDE_SRC_DIR}>
+  $<INSTALL_INTERFACE:include>
+)
 target_link_libraries(bxzstr INTERFACE ZLIB::ZLIB BZip2::BZip2 LibLZMA::LibLZMA Zstd::Zstd)
 target_compile_features(bxzstr INTERFACE cxx_std_11) # require c++11 flag
+
+
+install(
+  DIRECTORY ${BXZSTR_INCLUDE_SRC_DIR}
+  DESTINATION ${BXZSTR_INCLUDE_INSTALL_DIR}
+)
+export(
+  TARGETS ${BXZSTR_TARGET_NAME}
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${BXZSTR_CMAKE_PROJECT_TARGETS_FILE}
+)
+install(
+  TARGETS ${BXZSTR_TARGET_NAME}
+  EXPORT ${BXZSTR_TARGETS_EXPORT_NAME}
+  INCLUDES DESTINATION ${BXZSTR_INCLUDE_INSTALL_DIR}
+)
+install(
+  EXPORT ${BXZSTR_TARGETS_EXPORT_NAME}
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION ${BXZSTR_CONFIG_INSTALL_DIR}
+)
+
 
 ## Download googletest if building tests
 if(CMAKE_BUILD_TESTS)
