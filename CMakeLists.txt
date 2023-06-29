@@ -112,7 +112,19 @@ target_include_directories(
   $<BUILD_INTERFACE:${BXZSTR_INCLUDE_SRC_DIR}>
   $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(bxzstr INTERFACE ZLIB::ZLIB BZip2::BZip2 LibLZMA::LibLZMA Zstd::Zstd)
+#target_link_libraries(bxzstr INTERFACE ZLIB::ZLIB BZip2::BZip2 LibLZMA::LibLZMA Zstd::Zstd)
+if ( BXZSTR_Z_SUPPORT )
+  target_link_libraries(bxzstr INTERFACE ZLIB::ZLIB)
+endif()
+if ( BXZSTR_BZ2_SUPPORT )
+  target_link_libraries(bxzstr INTERFACE BZip2::BZip2)
+endif()
+if ( BXZSTR_LZMA_SUPPORT )
+  target_link_libraries(bxzstr INTERFACE LibLZMA::LibLZMA)
+endif()
+if ( BXZSTR_ZSTD_SUPPORT )
+  target_link_libraries(bxzstr INTERFACE Zstd::Zstd)
+endif()
 target_compile_features(bxzstr INTERFACE cxx_std_11) # require c++11 flag
 
 
